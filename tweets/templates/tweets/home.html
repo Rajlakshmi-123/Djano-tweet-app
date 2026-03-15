@@ -1,0 +1,54 @@
+{% extends 'tweets/base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="card">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.content }}
+        {{ form.image }}
+        <button type="submit" class="btn btn-primary">Tweet</button>
+    </form>
+</div>
+
+{% for tweet in tweets %}
+<div class="card">
+    <div class="tweet-header">
+        <img src="{{ tweet.author.profile.get_avatar_url }}" class="avatar" alt="">
+        <div>
+            <a href="{% url 'profile' tweet.author.username %}"><strong>{{ tweet.author.username }}</strong></a>
+            <div class="tweet-meta">{{ tweet.created_at|timesince }} ago</div>
+        </div>
+    </div>
+    <p class="tweet-content">{{ tweet.content }}</p>
+    {% if tweet.image %}
+        <img src="{{ tweet.image.url }}" style="max-width:100%;border-radius:8px;margin-bottom:10px;" alt="">
+    {% endif %}
+    <div class="tweet-actions">
+        <a href="{% url 'tweet_detail' tweet.pk %}">💬 {{ tweet.comments.count }}</a>
+        <a href="#" onclick="likeTweet({{ tweet.pk }}, this); return false;" id="like-{{ tweet.pk }}">
+            ❤️ <span id="likes-count-{{ tweet.pk }}">{{ tweet.total_likes }}</span>
+        </a>
+        {% if tweet.author == request.user %}
+            <a href="{% url 'delete_tweet' tweet.pk %}" class="btn-danger" style="color:#e0245e;" onclick="return confirm('Delete this tweet?')">🗑 Delete</a>
+        {% endif %}
+    </div>
+</div>
+{% empty %}
+<div class="card" style="text-align:center;color:#657786;">
+    No tweets yet. Follow people or post your first tweet!
+</div>
+{% endfor %}
+
+<script>
+function likeTweet(pk, el) {
+    fetch(`/tweet/${pk}/like/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('likes-count-' + pk).textContent = data.total_likes;
+    });
+}
+</script>
+{% endblock %}

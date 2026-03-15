@@ -1,0 +1,49 @@
+{% extends 'tweets/base.html' %}
+{% block title %}@{{ profile_user.username }}{% endblock %}
+{% block content %}
+<div class="card" style="text-align:center;">
+    <img src="{{ profile.get_avatar_url }}" style="width:80px;height:80px;border-radius:50%;margin-bottom:10px;" alt="">
+    <h2>{{ profile_user.username }}</h2>
+    <p style="color:#657786;">{{ profile.bio }}</p>
+    <p><strong id="followers-count">{{ profile.followers.count }}</strong> followers · <strong>{{ profile.following.count }}</strong> following</p>
+    {% if user != profile_user and user.is_authenticated %}
+        <button class="btn {% if is_following %}btn-outline{% else %}btn-primary{% endif %}"
+                id="follow-btn" onclick="toggleFollow('{{ profile_user.username }}')">
+            {% if is_following %}Unfollow{% else %}Follow{% endif %}
+        </button>
+    {% endif %}
+    {% if user == profile_user %}
+        <a href="{% url 'edit_profile' %}" class="btn btn-outline" style="margin-top:8px;">Edit Profile</a>
+    {% endif %}
+</div>
+
+{% for tweet in tweets %}
+<div class="card">
+    <p class="tweet-meta">{{ tweet.created_at|timesince }} ago</p>
+    <p class="tweet-content">{{ tweet.content }}</p>
+    {% if tweet.image %}
+        <img src="{{ tweet.image.url }}" style="max-width:100%;border-radius:8px;" alt="">
+    {% endif %}
+    <div class="tweet-actions">
+        <a href="{% url 'tweet_detail' tweet.pk %}">💬 {{ tweet.comments.count }}</a>
+        <span>❤️ {{ tweet.total_likes }}</span>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function toggleFollow(username) {
+    fetch(`/profile/${username}/follow/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        const btn = document.getElementById('follow-btn');
+        btn.textContent = data.following ? 'Unfollow' : 'Follow';
+        btn.className = 'btn ' + (data.following ? 'btn-outline' : 'btn-primary');
+        document.getElementById('followers-count').textContent = data.followers_count;
+    });
+}
+</script>
+{% endblock %}

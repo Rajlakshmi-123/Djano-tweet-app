@@ -1,0 +1,37 @@
+{% extends 'tweets/base.html' %}
+{% block title %}Tweet by @{{ tweet.author.username }}{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="tweet-header">
+        <img src="{{ tweet.author.profile.get_avatar_url }}" class="avatar" alt="">
+        <div>
+            <a href="{% url 'profile' tweet.author.username %}"><strong>{{ tweet.author.username }}</strong></a>
+            <div class="tweet-meta">{{ tweet.created_at }}</div>
+        </div>
+    </div>
+    <p class="tweet-content" style="font-size:20px;">{{ tweet.content }}</p>
+    {% if tweet.image %}<img src="{{ tweet.image.url }}" style="max-width:100%;border-radius:8px;" alt="">{% endif %}
+    <p style="margin-top:10px;color:#657786;">❤️ {{ tweet.total_likes }} likes</p>
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom:12px;">Replies</h3>
+    {% for comment in comments %}
+    <div style="border-bottom:1px solid #e1e8ed;padding:10px 0;">
+        <strong>{{ comment.author.username }}</strong>
+        <span style="color:#657786;font-size:12px;"> · {{ comment.created_at|timesince }} ago</span>
+        <p>{{ comment.content }}</p>
+    </div>
+    {% empty %}
+    <p style="color:#657786;">No replies yet. Be the first!</p>
+    {% endfor %}
+
+    {% if user.is_authenticated %}
+    <form method="post" style="margin-top:12px;">
+        {% csrf_token %}
+        {{ comment_form.content }}
+        <button type="submit" class="btn btn-primary">Reply</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

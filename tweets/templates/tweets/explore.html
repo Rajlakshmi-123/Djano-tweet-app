@@ -1,0 +1,20 @@
+{% extends 'tweets/base.html' %}
+{% block title %}Explore{% endblock %}
+{% block content %}
+<div class="card">
+    <form method="get">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search tweets...">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+</div>
+{% for tweet in tweets %}
+<div class="card">
+    <div class="tweet-header">
+        <img src="{{ tweet.author.profile.get_avatar_url }}" class="avatar" alt="">
+        <a href="{% url 'profile' tweet.author.username %}"><strong>{{ tweet.author.username }}</strong></a>
+    </div>
+    <p class="tweet-content">{{ tweet.content }}</p>
+    <a href="{% url 'tweet_detail' tweet.pk %}" style="color:#1da1f2;font-size:13px;">View tweet</a>
+</div>
+{% endfor %}
+{% endblock %}
